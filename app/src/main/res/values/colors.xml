@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors of Compose tokens needed by the platform (window background, launcher icon). -->
+    <color name="window_background">#FFF6F2EA</color>
+    <color name="icon_background">#FF101826</color>
+    <color name="icon_tile">#FFF3EBDD</color>
+    <color name="icon_tile_edge">#FFC9BCA4</color>
+    <color name="icon_divider">#FFD6CAB3</color>
+    <color name="icon_accent">#FFF4B942</color>
+</resources>

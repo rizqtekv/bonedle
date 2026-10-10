@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bonedle</string>
+
+    <!-- Region colour names, used in spoken descriptions. -->
+    <string name="region_color_teal">teal</string>
+    <string name="region_color_orange">orange</string>
+    <string name="region_color_violet">violet</string>
+    <string name="region_color_pink">pink</string>
+    <string name="region_color_sky">sky</string>
+    <string name="region_color_lime">lime</string>
+
+    <!-- Rules: the symbol shown on a chip and the words read aloud. -->
+    <string name="rule_symbol_equal">=</string>
+    <string name="rule_symbol_all_different">≠</string>
+    <string name="rule_symbol_sum_lt">&lt;%1$d</string>
+    <string name="rule_symbol_sum_gt">&gt;%1$d</string>
+    <string name="rule_symbol_broken">!</string>
+    <string name="rule_spoken_equal">all equal</string>
+    <string name="rule_spoken_all_different">all different</string>
+    <string name="rule_spoken_sum_eq">sum equals %1$d</string>
+    <string name="rule_spoken_sum_lt">sum less than %1$d</string>
+    <string name="rule_spoken_sum_gt">sum greater than %1$d</string>
+    <string name="rule_state_satisfied">satisfied</string>
+    <string name="rule_state_broken">rule broken</string>
+    <string name="rule_chip_description">%1$s region, %2$s</string>
+    <string name="rule_chip_description_state">%1$s region, %2$s, %3$s</string>
+
+    <!-- Dominoes -->
+    <string name="domino_description">Domino %1$d and %2$d</string>
+
+    <!-- Generic actions used by design-system components -->
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
+    <string name="badge_count">%1$d remaining</string>
+    <!-- Difficulty and mode -->
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_medium">Medium</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="difficulty_expert">Expert</string>
+    <string name="mode_daily">Daily</string>
+    <string name="mode_unlimited">Unlimited</string>
+    <string name="play_title">%1$s · %2$s</string>
+    <string name="play_daily_number">Bonedle #%1$d</string>
+    <string name="play_timer_description">Time played %1$s</string>
+    <string name="play_loading">Setting up the board…</string>
+    <string name="play_failed">This board couldn’t be loaded.</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Toolbar -->
+    <string name="toolbar_undo">Undo</string>
+    <string name="toolbar_rotate">Rotate</string>
+    <string name="toolbar_hint">Hint</string>
+    <string name="toolbar_restart">Restart</string>
+
+    <!-- Tray and cells (spoken) -->
+    <string name="tray_description">Tray, %1$d dominoes left</string>
+    <string name="tray_action_select">Select</string>
+    <string name="tray_selected">selected</string>
+    <string name="cell_description">Row %1$d, column %2$d, %3$s, %4$s</string>
+    <string name="cell_region">%1$s region, %2$s</string>
+    <string name="cell_no_region">no region</string>
+    <string name="cell_empty">empty</string>
+    <string name="cell_value">%1$d, from domino %2$d and %3$d</string>
+    <string name="cell_action_place">Place selected domino</string>
+    <string name="cell_action_rotate">Rotate domino</string>
+    <string name="cell_action_return">Return domino to tray</string>
+
+    <!-- Hints -->
+    <string name="hint_title">Hint</string>
+    <string name="hint_look">There’s a deduction in the highlighted cells.</string>
+    <string name="hint_explain">Explain</string>
+    <string name="hint_show">Show me</string>
+    <string name="hint_wrong">This domino isn’t in the right place.</string>
+    <string name="hint_take_back">Take it back</string>
+    <string name="hint_none_left">No free hints left for this puzzle.</string>
+    <string name="hint_fallback">Here’s a domino that belongs on the board.</string>
+    <string name="deduction_single_cell">Only one option fits in these cells.</string>
+    <string name="deduction_single_pair">These two cells can only form one domino together.</string>
+    <string name="deduction_region_sum">This region’s total only works one way for some cells.</string>
+    <string name="deduction_equal">Every cell in this region must be %1$d.</string>
+    <string name="deduction_equal_generic">The cells in this region must all match.</string>
+    <string name="deduction_all_different">No two cells in this region can share a value.</string>
+    <string name="deduction_adjacency">Some neighbours here can’t be covered by any domino left in the tray.</string>
+    <string name="deduction_tray">Count the dominoes left in the tray: only one can go here.</string>
+    <string name="deduction_two_region">These two regions limit each other through the domino that joins them.</string>
+    <string name="deduction_lookahead">Try a value here: it leads to a contradiction.</string>
+    <string name="deduction_then">So row %1$d, column %2$d is %3$d.</string>
+
+    <!-- Rule legend -->
+    <string name="legend_title">Rules</string>
+    <string name="legend_rule_equal">Every cell shows the same number.</string>
+    <string name="legend_rule_all_different">No two cells show the same number.</string>
+    <string name="legend_rule_sum_eq">The cells add up to %1$d.</string>
+    <string name="legend_rule_sum_lt">The cells add up to less than %1$d.</string>
+    <string name="legend_rule_sum_gt">The cells add up to more than %1$d.</string>
+    <string name="legend_free">Cells without a colour have no rule.</string>
+    <string name="legend_goal">Use every domino once and cover every cell.</string>
+
+    <!-- Restart -->
+    <string name="restart_title">Restart this board?</string>
+    <string name="restart_body">Every domino goes back to the tray. The clock keeps running.</string>
+    <string name="restart_confirm">Restart</string>
+
+    <!-- Tutorial -->
+    <string name="tutorial_title">How to play</string>
+    <string name="tutorial_progress">Step %1$d of %2$d</string>
+    <string name="tutorial_skip">Skip</string>
+    <string name="tutorial_cover">Drag each domino onto two cells until every cell is covered.</string>
+    <string name="tutorial_equal">In an = region, every cell shows the same number.</string>
+    <string name="tutorial_sum">A number is the total of its region.</string>
+    <string name="tutorial_all_different">In a ≠ region, no two cells show the same number.</string>
+    <string name="tutorial_step_done">Nice.</string>
+    <string name="tutorial_all_done">You know every rule.</string>
+    <string name="tutorial_next">Next</string>
+    <string name="tutorial_finish">Play today’s board</string>
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_archive">Archive</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="home_streak_description">%1$d-day streak</string>
+    <string name="home_today_title">Today’s boards</string>
+    <string name="home_play">Play</string>
+    <string name="home_continue">Continue · %1$s</string>
+    <string name="home_solved_in">Solved in %1$s</string>
+    <string name="home_unlimited_title">Unlimited</string>
+    <string name="home_unlimited_body">Endless boards, any time.</string>
+    <string name="home_play_unlimited">Play unlimited</string>
+    <string name="home_continue_unlimited">Continue unlimited</string>
+    <string name="home_challenge_title">Challenge a friend</string>
+    <string name="home_challenge_body">Send today’s board and see who solves it faster.</string>
+    <string name="home_challenge_action">Send challenge</string>
+    <string name="home_how_to_play">How to play</string>
+    <string name="home_row_description">%1$s, %2$s</string>
+
+    <!-- Solved -->
+    <string name="solved_title">Solved</string>
+    <string name="solved_time">Time</string>
+    <string name="solved_hints">Hints</string>
+    <string name="solved_streak">Streak</string>
+    <string name="solved_share">Share result</string>
+    <string name="solved_next">Next puzzle</string>
+    <string name="solved_home">Back home</string>
+    <string name="solved_subtitle_daily">Bonedle #%1$d · %2$s</string>
+    <string name="solved_subtitle_unlimited">Unlimited · %1$s</string>
+    <string name="solved_share_chooser">Share your result</string>
+    <string name="solved_card_description">Share card: %1$s</string>
+
+    <!-- Share text (spec 8.1) -->
+    <string name="share_daily">Bonedle #%1$d %2$s</string>
+    <string name="share_unlimited">Bonedle Unlimited %1$s</string>
+    <string name="share_streak">%1$d-day streak</string>
+    <string name="share_no_hints">no hints</string>
+    <plurals name="share_hints">
+        <item quantity="one">%1$d hint</item>
+        <item quantity="other">%1$d hints</item>
+    </plurals>
+    <string name="share_challenge">Can you beat me at today’s Bonedle? #%1$d %2$s</string>
+
+    <!-- Copy text and head-to-head (spec 8.1, 8.3) -->
+    <string name="solved_copy">Copy text</string>
+    <string name="solved_copied">Copied</string>
+    <string name="solved_copy_label">Bonedle result</string>
+    <string name="solved_send_back">Send it back</string>
+    <string name="solved_title_won">You won</string>
+    <string name="solved_title_lost">Your friend was faster</string>
+    <string name="solved_title_tie">Dead heat</string>
+    <string name="h2h_title">Head to head</string>
+    <string name="h2h_you">You</string>
+    <string name="h2h_friend">Your friend</string>
+    <string name="h2h_won_by">Faster by %1$s</string>
+    <string name="h2h_lost_by">Behind by %1$s</string>
+    <string name="h2h_tie">Same time, to the second</string>
+    <string name="h2h_description">You: %1$s, %2$s. Your friend: %3$s, %4$s. %5$s.</string>
+
+    <!-- Daily reminder offer, after the third completed daily (spec 8.5) -->
+    <string name="reminder_offer_title">Never miss a daily</string>
+    <string name="reminder_offer_body">Get one reminder a day at %1$s, only when today’s boards are unsolved. Change it any time in Settings.</string>
+    <string name="reminder_offer_accept">Remind me</string>
+    <string name="reminder_offer_decline">Not now</string>
+
+    <!-- The reminder notification -->
+    <string name="reminder_channel_name">Daily reminder</string>
+    <string name="reminder_channel_description">One reminder a day, only when today’s boards are unsolved.</string>
+    <string name="reminder_title">Bonedle #%1$d is ready</string>
+    <string name="reminder_body">Three new boards are waiting: Easy, Medium and Hard.</string>
+    <plurals name="reminder_body_streak">
+        <item quantity="one">Keep your %1$d-day streak going: three new boards are waiting.</item>
+        <item quantity="other">Keep your %1$d-day streak going: three new boards are waiting.</item>
+    </plurals>
+
+    <!-- Stats -->
+    <string name="stats_title">Stats</string>
+    <string name="stats_played">Played</string>
+    <string name="stats_solve_rate">Solve rate</string>
+    <string name="stats_solve_rate_value">%1$d%%</string>
+    <string name="stats_current_streak">Current streak</string>
+    <string name="stats_best_streak">Best streak</string>
+    <string name="stats_average_title">Average time</string>
+    <string name="stats_no_time">—</string>
+    <string name="stats_no_time_description">not played yet</string>
+    <string name="stats_calendar_title">Last 30 days</string>
+    <string name="stats_calendar_day">%1$s: %2$d of 3 dailies</string>
+    <string name="stats_calendar_less">Less</string>
+    <string name="stats_calendar_more">More</string>
+    <string name="stats_freeze_ready">Streak freeze ready: one missed day this week won’t break your streak.</string>
+    <string name="stats_freeze_used">This week’s streak freeze is used.</string>
+
+    <!-- Archive -->
+    <string name="archive_title">Archive</string>
+    <string name="archive_subtitle">Every daily board since #1.</string>
+    <string name="archive_empty">Past boards appear here from tomorrow.</string>
+    <string name="archive_entry_title">#%1$d · %2$s</string>
+    <string name="archive_locked">Bonedle Plus</string>
+    <string name="archive_locked_description">Older boards come with Bonedle Plus</string>
+    <string name="archive_chip_description">%1$s, %2$s</string>
+    <string name="status_new">not started</string>
+    <string name="status_in_progress">in progress</string>
+    <string name="status_solved">solved in %1$s</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_display">Display</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_hide_timer">Hide timer</string>
+    <string name="settings_hide_timer_body">The clock still runs for your stats.</string>
+    <string name="settings_section_feel">Sound and feel</string>
+    <string name="settings_sound">Sound</string>
+    <string name="settings_haptics">Haptics</string>
+    <string name="settings_section_play">Gameplay</string>
+    <string name="settings_strict">Strict mode</string>
+    <string name="settings_strict_body">Refuse dominoes that break a rule instead of flagging them.</string>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_reminder">Daily reminder</string>
+    <string name="settings_reminder_body">One notification a day, only if today’s boards are unsolved.</string>
+    <string name="settings_reminder_time">Reminder time</string>
+    <string name="settings_reminder_blocked">Notifications for Bonedle are turned off in system settings.</string>
+    <string name="settings_reminder_open_system">Open system settings</string>
+    <string name="reminder_time_title">Reminder time</string>
+    <string name="reminder_time_hour">Hour</string>
+    <string name="reminder_time_minute">Minute</string>
+    <string name="action_save">Save</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_how_to_play">How to play</string>
+    <string name="settings_privacy">Privacy policy</string>
+    <string name="settings_credits">Credits</string>
+    <string name="settings_version">Version %1$s (%2$d)</string>
+
+    <!-- Credits -->
+    <string name="credits_title">Credits</string>
+    <string name="credits_fonts">Fonts</string>
+    <string name="credits_font_license">%1$s · SIL Open Font License 1.1</string>
+    <string name="credits_show_license">Show license</string>
+    <string name="credits_hide_license">Hide license</string>
+    <string name="credits_body">Made with Kotlin and Jetpack Compose. Every board is generated on your phone.</string>
+</resources>

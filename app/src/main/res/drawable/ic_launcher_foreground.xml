@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An upright ivory domino, tilted slightly, inside the 66dp safe zone; accent spots show 1 and 3. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-12">
+        <!-- Bottom bevel -->
+        <path
+            android:fillColor="@color/icon_tile_edge"
+            android:pathData="M43.5,26.5h21a5.5,5.5 0,0 1,5.5 5.5v52.5a5.5,5.5 0,0 1,-5.5 5.5h-21a5.5,5.5 0,0 1,-5.5 -5.5v-52.5a5.5,5.5 0,0 1,5.5 -5.5z" />
+        <!-- Face -->
+        <path
+            android:fillColor="@color/icon_tile"
+            android:pathData="M43.5,22h21a5.5,5.5 0,0 1,5.5 5.5v53a5.5,5.5 0,0 1,-5.5 5.5h-21a5.5,5.5 0,0 1,-5.5 -5.5v-53a5.5,5.5 0,0 1,5.5 -5.5z" />
+        <!-- Centre line -->
+        <path
+            android:fillColor="@color/icon_divider"
+            android:pathData="M42,52.8h24v2.4h-24z" />
+        <!-- Top half: one pip -->
+        <path
+            android:fillColor="@color/icon_accent"
+            android:pathData="M54,37.5m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+        <!-- Bottom half: three spots on the diagonal -->
+        <path
+            android:fillColor="@color/icon_accent"
+            android:pathData="M46.5,62.5m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0M54,70m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0M61.5,77.5m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0" />
+    </group>
+</vector>

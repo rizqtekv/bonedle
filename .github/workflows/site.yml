@@ -1,0 +1,46 @@
+# Builds the website (./gradlew assembleSite) and publishes it to GitHub Pages:
+# https://rizqtekv.github.io/bonedle/ (gradle.properties `bonedle.siteUrl`).
+# The daily run publishes the next day's board images, never later ones (web/README.md).
+name: Website
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "30 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the site
+        run: ./gradlew assembleSite --console=plain
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed (monochrome) icon: the domino as one shape with the spots and centre line cut out. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-12">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M43.5,22h21a5.5,5.5 0,0 1,5.5 5.5v53a5.5,5.5 0,0 1,-5.5 5.5h-21a5.5,5.5 0,0 1,-5.5 -5.5v-53a5.5,5.5 0,0 1,5.5 -5.5z M42,52.8h24v2.4h-24z M54,37.5m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0 M46.5,62.5m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0 M54,70m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0 M61.5,77.5m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0" />
+    </group>
+</vector>

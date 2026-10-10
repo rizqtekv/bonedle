@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rendered share cards live in cache/share and are replaced on every share. -->
+<paths>
+    <cache-path
+        name="share"
+        path="share/" />
+</paths>
