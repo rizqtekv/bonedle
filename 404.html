@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Bonedle challenge</title>
+  <meta name="description" content="A friend sent you a Bonedle board. Can you beat their time?">
+  <meta property="og:title" content="A Bonedle challenge">
+  <meta property="og:description" content="A friend sent you a Bonedle board. Can you beat their time?">
+  <meta name="theme-color" content="#101826">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&family=Sora:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/bonedle/site.css">
+</head>
+<body>
+<!--
+  GitHub Pages has no rewrites, so challenge links (<site>/d/<number>/<difficulty>,
+  <site>/u/<seed>/<difficulty>) land on this page; it reads the board from the address.
+  With the app installed, verified App Links open the board in the app instead.
+-->
+<main>
+  <a class="brand" href="/bonedle/">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3" fill="#F3EBDD"/><rect x="8" y="11.25" width="8" height="1.5" fill="#C9BCA4"/><circle cx="12" cy="6.5" r="1.5" fill="#F4B942"/><circle cx="9.75" cy="15.5" r="1.25" fill="#F4B942"/><circle cx="12" cy="17.75" r="1.25" fill="#F4B942"/><circle cx="14.25" cy="20" r="1.25" fill="#F4B942"/></svg>
+    Bonedle
+  </a>
+
+  <section id="missing">
+    <h1>Nothing here</h1>
+    <p class="muted">This address does not point to a Bonedle board.</p>
+    <a class="button secondary" href="/bonedle/">Go to Bonedle</a>
+  </section>
+
+  <section id="challenge" hidden>
+    <h1 id="title">A Bonedle challenge</h1>
+    <p class="muted" id="lede">A friend sent you this board. Every Bonedle board has exactly one solution.</p>
+
+    <div class="card" id="friend" hidden>
+      <div class="friend">
+        <span class="muted">Your friend’s time</span>
+        <strong id="friend-time"></strong>
+      </div>
+      <p class="muted" id="friend-hints" style="margin:8px 0 0"></p>
+    </div>
+
+    <img class="board" id="board" alt="" hidden>
+
+    <a class="button primary" id="install" href="https://play.google.com/store/apps/details?id=app.bonedle">Play it on Google Play</a>
+    <a class="button secondary" id="open" href="/bonedle/" hidden>I have Bonedle: open the board</a>
+    <p class="muted">Free, plays offline, no account needed. The board opens as soon as the app starts.</p>
+  </section>
+  <footer class="muted"><a href="/bonedle/privacy.html">Privacy policy</a></footer>
+</main>
+<script>
+  // Mirrors app.bonedle.domain.Links (paths) and app.bonedle.domain.Referrer (install referrer).
+  (function () {
+    var BASE = "/bonedle";
+    var PACKAGE = "app.bonedle";
+    var DAILY = { easy: "Easy", medium: "Medium", hard: "Hard" };
+    var ALL = { easy: "Easy", medium: "Medium", hard: "Hard", expert: "Expert" };
+    var path = location.pathname;
+    if (path.indexOf(BASE + "/") !== 0) return;
+    var parts = path.slice(BASE.length).replace(/^\/+|\/+$/g, "").split("/");
+    var kind = parts[0];
+    var difficulty = (parts[2] || (kind === "d" ? "easy" : "")).toLowerCase();
+    var valid = (kind === "d" && /^[1-9][0-9]{0,6}$/.test(parts[1] || "") && DAILY[difficulty] && parts.length <= 3) ||
+                (kind === "u" && /^[0-9a-z]{1,13}$/i.test(parts[1] || "") && ALL[difficulty] && parts.length === 3);
+    if (!valid) return;
+    document.getElementById("missing").hidden = true;
+    document.getElementById("challenge").hidden = false;
+
+    var params = new URLSearchParams(location.search);
+    var seconds = parseInt(params.get("t") || "", 10);
+    var hints = parseInt(params.get("h") || "0", 10);
+    var title = kind === "d" ? "Bonedle #" + parts[1] + " · " + DAILY[difficulty] : "Bonedle Unlimited · " + ALL[difficulty];
+    document.title = title;
+    document.getElementById("title").textContent = title;
+
+    if (seconds > 0 && seconds < 360000) {
+      var h = Math.floor(seconds / 3600), m = Math.floor(seconds % 3600 / 60), s = seconds % 60;
+      var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+      document.getElementById("friend-time").textContent = h > 0 ? h + ":" + pad(m) + ":" + pad(s) : m + ":" + pad(s);
+      document.getElementById("friend-hints").textContent =
+        (!hints ? "No hints." : hints === 1 ? "1 hint." : hints + " hints.") + " Can you beat it?";
+      document.getElementById("friend").hidden = false;
+      document.getElementById("lede").textContent = "A friend solved this board and sent it to you.";
+    }
+
+    if (kind === "d") {
+      var img = document.getElementById("board");
+      img.alt = title + ": the board's regions and rules";
+      img.onload = function () { img.hidden = false; };
+      img.src = BASE + "/img/d/" + parts[1] + "-" + difficulty + ".svg";
+    }
+
+    // The board travels through the Play Store to the app's first launch.
+    var board = kind + "/" + parts[1] + "/" + difficulty + (seconds > 0 ? "?t=" + seconds + "&h=" + (hints || 0) : "");
+    var referrer = "utm_source=bonedle&utm_medium=challenge&utm_content=" + encodeURIComponent(board);
+    var store = "https://play.google.com/store/apps/details?id=" + PACKAGE + "&referrer=" + encodeURIComponent(referrer);
+    document.getElementById("install").href = store;
+
+    // App Links skip the browser when the app is installed; if this page still opened, offer
+    // Chrome's intent link, which falls back to the store.
+    if (/Android/i.test(navigator.userAgent)) {
+      var open = document.getElementById("open");
+      open.href = "intent://" + location.host + BASE + "/" + board + "#Intent;scheme=https;package=" + PACKAGE +
+        ";S.browser_fallback_url=" + encodeURIComponent(store) + ";end";
+      open.hidden = false;
+    }
+  })();
+</script>
+</body>
+</html>
