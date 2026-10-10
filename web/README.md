@@ -17,10 +17,20 @@ images and writes the finished site to `build/site`.
 
 ## Publishing
 
-The `Website` workflow (`.github/workflows/site.yml`) builds and deploys on every push to `main`
-and every day at 23:30 UTC. The daily run writes board images through tomorrow (UTC), never later,
-so future boards are not published early. One-time setup: repository Settings > Pages > Source:
-GitHub Actions.
+GitHub Pages serves the `gh-pages` branch. The `Website` workflow (`.github/workflows/site.yml`)
+rebuilds and force-pushes it on every push to `main` and every day at 23:30 UTC; the daily run
+writes board images through tomorrow (UTC), never later, so future boards are not published
+early.
+
+To publish by hand (for example while Actions is unavailable), from the repository root:
+
+```
+rm -rf build/site-boards
+./gradlew assembleSite
+cd build/site
+git init -q -b gh-pages && git add -A && git commit -q -m "Publish site"
+git push -f https://github.com/rizqtekv/bonedle.git gh-pages
+```
 
 ## App Link verification (one time per signing key)
 
