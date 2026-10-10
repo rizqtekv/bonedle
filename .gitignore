@@ -8,3 +8,5 @@ captures/
 .DS_Store
 # The working brief stays local.
 Prompt.md
+# Built APKs and bundles
+release/

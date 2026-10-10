@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 221.2 108">
+<defs>
+<radialGradient id="bg" cx="30%" cy="42%" r="80%"><stop offset="0" stop-color="#1C2840"/><stop offset="1" stop-color="#0B111C"/></radialGradient>
+<linearGradient id="glow" gradientUnits="userSpaceOnUse" x1="-30" y1="0" x2="30" y2="0"><stop offset="0" stop-color="#35C2B0"/><stop offset="1" stop-color="#F4B942"/></linearGradient>
+</defs>
+<rect width="221.2" height="108" fill="url(#bg)"/>
+<path d="M-128.00,-140.00V140.00M-140.00,-128.00H140.00M-104.00,-140.00V140.00M-140.00,-104.00H140.00M-80.00,-140.00V140.00M-140.00,-80.00H140.00M-56.00,-140.00V140.00M-140.00,-56.00H140.00M-32.00,-140.00V140.00M-140.00,-32.00H140.00M-8.00,-140.00V140.00M-140.00,-8.00H140.00M16.00,-140.00V140.00M-140.00,16.00H140.00M40.00,-140.00V140.00M-140.00,40.00H140.00M64.00,-140.00V140.00M-140.00,64.00H140.00M88.00,-140.00V140.00M-140.00,88.00H140.00M112.00,-140.00V140.00M-140.00,112.00H140.00M136.00,-140.00V140.00M-140.00,136.00H140.00" transform="translate(110.6 54) scale(1 0.74) rotate(-35)" fill="none" stroke="#05080F" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.55"/>
+<path d="M-128.00,-140.00V140.00M-140.00,-128.00H140.00M-104.00,-140.00V140.00M-140.00,-104.00H140.00M-80.00,-140.00V140.00M-140.00,-80.00H140.00M-56.00,-140.00V140.00M-140.00,-56.00H140.00M-32.00,-140.00V140.00M-140.00,-32.00H140.00M-8.00,-140.00V140.00M-140.00,-8.00H140.00M16.00,-140.00V140.00M-140.00,16.00H140.00M40.00,-140.00V140.00M-140.00,40.00H140.00M64.00,-140.00V140.00M-140.00,64.00H140.00M88.00,-140.00V140.00M-140.00,88.00H140.00M112.00,-140.00V140.00M-140.00,112.00H140.00M136.00,-140.00V140.00M-140.00,136.00H140.00" transform="translate(110.6 53) scale(1 0.74) rotate(-35)" fill="none" stroke="#FFFFFF" stroke-width="0.5" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.05"/>
+</svg>

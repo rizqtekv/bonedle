@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- The 1024 x 500 Play feature graphic. Render with headless Chrome (see art/README.md). Layers
+     come from art/icon.py; fonts are the app's own. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Sora"; src: url("../../app/src/main/res/font/sora_variable.ttf"); font-weight: 100 800; }
+  @font-face { font-family: "DM Sans"; src: url("../../app/src/main/res/font/dm_sans_variable.ttf"); font-weight: 100 1000; }
+  html, body { margin: 0; background: #0B111C; }
+  .banner { position: relative; width: 1024px; height: 500px; overflow: hidden;
+            background: url("banner-background.svg") center / cover no-repeat; }
+  .domino { position: absolute; left: -62px; top: -8px; width: 560px; height: 560px; }
+  .text { position: absolute; left: 486px; top: 128px; }
+  h1 { margin: 0; font: 700 104px/1 "Sora"; color: #F4EFE6; letter-spacing: -1px; }
+  .sub { margin: 30px 0 0 4px; font: 600 40px/1 "DM Sans"; color: #F4B942; }
+  .tags { margin: 22px 0 0 4px; font: 500 27px/1 "DM Sans"; color: #A9B3C4; }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="domino" src="domino.svg" alt="">
+  <div class="text">
+    <h1>Bonedle</h1>
+    <div class="sub">Domino logic puzzles</div>
+    <div class="tags">Daily boards · Unlimited play · Offline</div>
+  </div>
+</div>
+</body>
+</html>
