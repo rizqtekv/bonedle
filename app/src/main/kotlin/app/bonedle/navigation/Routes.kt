@@ -19,6 +19,10 @@ data object SettingsRoute
 @Serializable
 data object CreditsRoute
 
+/** The Bonedle Plus sheet. */
+@Serializable
+data object PlusRoute
+
 /**
  * The result of a finished board, by game key. [fresh] is true straight after solving it (the
  * only time the screen may offer the reminder or ask for a rating).

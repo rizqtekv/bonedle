@@ -98,14 +98,14 @@ class ArchiveViewModel @Inject constructor(progress: ProgressRepository, entitle
 }
 
 @Composable
-fun ArchiveDestination(onOpen: (GameId.Daily, BoardStatus) -> Unit, onTab: (Tab) -> Unit, viewModel: ArchiveViewModel = hiltViewModel()) {
+fun ArchiveDestination(onOpen: (GameId.Daily, BoardStatus) -> Unit, onTab: (Tab) -> Unit, onLocked: () -> Unit, viewModel: ArchiveViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ArchiveScreen(state, onOpen, onTab)
+    ArchiveScreen(state, onOpen, onTab, onLocked)
 }
 
-/** Archive (spec 5.6): every past daily, newest first. */
+/** Archive (spec 5.6): every past daily, newest first. A locked board opens Bonedle Plus ([onLocked]). */
 @Composable
-fun ArchiveScreen(state: ArchiveUiState, onOpen: (GameId.Daily, BoardStatus) -> Unit, onTab: (Tab) -> Unit) {
+fun ArchiveScreen(state: ArchiveUiState, onOpen: (GameId.Daily, BoardStatus) -> Unit, onTab: (Tab) -> Unit, onLocked: () -> Unit = {}) {
     TabScaffold(selected = Tab.Archive, onTab = onTab) {
         LazyColumn(
             Modifier.windowInsetsPadding(WindowInsets.statusBars),
@@ -118,13 +118,13 @@ fun ArchiveScreen(state: ArchiveUiState, onOpen: (GameId.Daily, BoardStatus) -> 
                     Text(stringResource(R.string.archive_empty), style = BonedleTheme.typography.body, color = BonedleTheme.colors.textSecondary, modifier = Modifier.padding(top = Spacing.lg))
                 }
             }
-            items(state.entries, key = { it.number }) { entry -> EntryCard(entry, onOpen) }
+            items(state.entries, key = { it.number }) { entry -> EntryCard(entry, onOpen, onLocked) }
         }
     }
 }
 
 @Composable
-private fun EntryCard(entry: ArchiveEntry, onOpen: (GameId.Daily, BoardStatus) -> Unit) {
+private fun EntryCard(entry: ArchiveEntry, onOpen: (GameId.Daily, BoardStatus) -> Unit, onLocked: () -> Unit) {
     val colors = BonedleTheme.colors
     BonedleCard(Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -143,7 +143,7 @@ private fun EntryCard(entry: ArchiveEntry, onOpen: (GameId.Daily, BoardStatus) -
         }
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             entry.boards.forEach { (id, status) ->
-                BoardChip(id, status, entry.locked, Modifier.weight(1f)) { onOpen(id, status) }
+                BoardChip(id, status, entry.locked, Modifier.weight(1f)) { if (entry.locked) onLocked() else onOpen(id, status) }
             }
         }
     }
@@ -159,6 +159,8 @@ private fun BoardChip(id: GameId.Daily, status: BoardStatus, locked: Boolean, mo
         is BoardStatus.Solved -> stringResource(R.string.status_solved, formatDuration(status.timeMs))
     }
     val spoken = if (locked) stringResource(R.string.archive_locked_description) else stringResource(R.string.archive_chip_description, label, statusText)
+    // A locked board leads to Bonedle Plus; TalkBack says so ("double-tap to see Bonedle Plus").
+    val plusLabel = stringResource(R.string.archive_open_plus)
     val (fill, border) = when (status) {
         is BoardStatus.Solved -> colors.success.copy(alpha = 0.18f) to Color.Transparent
         is BoardStatus.InProgress -> colors.accent.copy(alpha = 0.14f) to colors.accent
@@ -170,11 +172,14 @@ private fun BoardChip(id: GameId.Daily, status: BoardStatus, locked: Boolean, mo
             .clip(Shapes.button)
             .background(fill)
             .border(1.dp, border, Shapes.button)
-            .clickable(enabled = !locked, role = Role.Button, onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .clearAndSetSemantics {
                 contentDescription = "$label, $spoken"
                 role = Role.Button
-                if (locked) disabled() else onClick { onClick(); true }
+                onClick(label = if (locked) plusLabel else null) {
+                    onClick()
+                    true
+                }
             }
             .padding(horizontal = Spacing.sm, vertical = Spacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -14,9 +14,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import app.bonedle.ads.AdsController
+import app.bonedle.ads.ConsentManager
+import app.bonedle.ads.LocalAds
+import app.bonedle.ads.SessionTracker
 import app.bonedle.analytics.Analytics
 import app.bonedle.analytics.Events
 import app.bonedle.analytics.LocalAnalytics
+import app.bonedle.billing.BillingRepository
 import app.bonedle.data.Clock
 import app.bonedle.data.links.InstallReferrerChecker
 import app.bonedle.data.links.LinkRepository
@@ -29,6 +34,7 @@ import app.bonedle.ui.sound.LocalSoundEffects
 import app.bonedle.ui.sound.SoundEffects
 import app.bonedle.ui.theme.BonedleTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -51,6 +57,14 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var analytics: Analytics
 
+    @Inject lateinit var ads: AdsController
+
+    @Inject lateinit var consent: ConsentManager
+
+    @Inject lateinit var sessions: SessionTracker
+
+    @Inject lateinit var billing: BillingRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -58,12 +72,21 @@ class MainActivity : ComponentActivity() {
         // A recreated activity already handled its launch intent.
         if (savedInstanceState == null) handleLink(intent)
         lifecycleScope.launch { referrer.checkOnce() }
+        // Restores Bonedle Plus after a reinstall and finishes pending acknowledgements.
+        lifecycleScope.launch { billing.refresh() }
+        // Consent (where required) is gathered from the second session, before any ad request;
+        // the first session never shows ads, so first launch goes straight to the tutorial.
+        lifecycleScope.launch {
+            val session = sessions.session.first { it > 0 }
+            val debugNow = BuildConfig.DEBUG && BuildConfig.ADS_DEBUG_NOW
+            if (BuildConfig.ADS_ENABLED && (session >= 2 || debugNow)) consent.gather(this@MainActivity)
+        }
         setContent {
             val current: Settings? by settings.settings.collectAsStateWithLifecycle(initialValue = null)
             val pending: PendingLink? by links.pending.collectAsStateWithLifecycle(initialValue = null)
             val loaded = current
             BonedleTheme(mode = loaded?.theme ?: Settings().theme) {
-                CompositionLocalProvider(LocalSoundEffects provides sounds, LocalAnalytics provides analytics) {
+                CompositionLocalProvider(LocalSoundEffects provides sounds, LocalAnalytics provides analytics, LocalAds provides ads) {
                     if (loaded == null) {
                         // Settings load in a few milliseconds; until then, just the background.
                         Box(Modifier.fillMaxSize().background(BonedleTheme.colors.bgBase))

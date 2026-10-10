@@ -5,6 +5,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.Density
+import app.bonedle.ads.LocalAds
 import app.bonedle.data.game.GameId
 import app.bonedle.engine.daily.DailySchedule
 import app.bonedle.engine.game.Game
@@ -14,6 +15,7 @@ import app.bonedle.engine.model.Difficulty
 import app.bonedle.engine.model.Direction
 import app.bonedle.engine.model.Placement
 import app.bonedle.engine.tutorial.TutorialBoards
+import app.bonedle.testing.ReadyAds
 import app.bonedle.ui.theme.BonedleTheme
 import app.bonedle.ui.theme.ThemeMode
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -64,6 +66,10 @@ object PlayScenes {
             base(g).copy(hint = HintUi(HintEngine.next(g), level = 2))
         },
         "legend" to { base(inProgress).copy(legendOpen = true, legendFocus = 0) },
+        "out-of-hints" to {
+            val unlimited = GameId.Unlimited(puzzle.seed, Difficulty.MEDIUM)
+            base(Game.start(puzzle)).copy(id = unlimited, hintsUsed = 2, outOfHints = true)
+        },
         "tutorial" to {
             val t = TutorialBoards.puzzle(1)
             var g = Game.start(t)
@@ -84,7 +90,9 @@ abstract class PlayScreenshots(private val scene: Int, private val mode: ThemeMo
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
                 BonedleTheme(mode = mode, reducedMotion = true) {
-                    PlayScreen(state = state(), onIntent = {}, onBack = {}, onSolved = {})
+                    CompositionLocalProvider(LocalAds provides ReadyAds) {
+                        PlayScreen(state = state(), onIntent = {}, onBack = {}, onSolved = {}, onPlus = {})
+                    }
                 }
             }
         }

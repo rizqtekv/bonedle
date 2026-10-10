@@ -6,6 +6,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.Density
+import app.bonedle.ads.LocalAds
+import app.bonedle.billing.PlusOffer
+import app.bonedle.billing.PlusState
+import app.bonedle.billing.RestoreResult
 import app.bonedle.data.db.GameResultEntity
 import app.bonedle.data.db.SavedGameEntity
 import app.bonedle.data.game.BoardStatus
@@ -13,6 +17,7 @@ import app.bonedle.data.game.GameId
 import app.bonedle.data.game.GameResult
 import app.bonedle.data.game.Progress
 import app.bonedle.data.settings.Settings
+import app.bonedle.domain.Challenge
 import app.bonedle.domain.StatsCalculator
 import app.bonedle.engine.daily.DailySchedule
 import app.bonedle.engine.model.Difficulty
@@ -23,13 +28,18 @@ import app.bonedle.feature.home.DailyRow
 import app.bonedle.feature.home.HomeActions
 import app.bonedle.feature.home.HomeScreen
 import app.bonedle.feature.home.HomeUiState
+import app.bonedle.feature.home.StreakRescue
+import app.bonedle.feature.plus.PlusActions
+import app.bonedle.feature.plus.PlusScreen
+import app.bonedle.feature.plus.PlusUiState
 import app.bonedle.feature.settings.SettingsActions
+import app.bonedle.feature.settings.SettingsExtras
 import app.bonedle.feature.settings.SettingsScreen
-import app.bonedle.domain.Challenge
 import app.bonedle.feature.solved.SolvedActions
 import app.bonedle.feature.solved.SolvedScreen
 import app.bonedle.feature.solved.SolvedUiState
 import app.bonedle.feature.stats.StatsScreen
+import app.bonedle.testing.ReadyAds
 import app.bonedle.ui.theme.BonedleTheme
 import app.bonedle.ui.theme.ThemeMode
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -67,6 +77,27 @@ object ShellScenes {
     private val solvedActions = SolvedActions(onHome = {}, onNext = {})
 
     val all: List<Pair<String, @Composable () -> Unit>> = listOf(
+        "home-saver" to {
+            CompositionLocalProvider(LocalAds provides ReadyAds) {
+                HomeScreen(
+                    HomeUiState(
+                        loading = false,
+                        today = today,
+                        number = NUMBER,
+                        dailies = Difficulty.DAILY.map { d -> GameId.Daily(NUMBER, d).let { DailyRow(it, BoardStatus.New) } },
+                        streak = 0,
+                        rescue = StreakRescue(day = today.epochDay - 1, streak = 12),
+                    ),
+                    home,
+                )
+            }
+        },
+        "plus" to {
+            PlusScreen(PlusUiState(PlusState(offer = PlusOffer("$3.99", 3_990_000, "USD", null))), PlusActions({}, {}, {}))
+        },
+        "plus-owned" to {
+            PlusScreen(PlusUiState(PlusState(owned = true), restoreResult = RestoreResult.RESTORED), PlusActions({}, {}, {}))
+        },
         "home" to {
             HomeScreen(
                 HomeUiState(
@@ -132,6 +163,13 @@ object ShellScenes {
             )
         },
         "settings" to { SettingsScreen(Settings(hideTimer = true), SettingsActions({}, {}, {}, {}, {}, {}, {}, {})) },
+        "settings-plus" to {
+            SettingsScreen(
+                Settings(),
+                SettingsActions({}, {}, {}, {}, {}, {}, {}, {}),
+                SettingsExtras(plusPrice = "$3.99", privacyChoices = true, restoreResult = RestoreResult.NOTHING_TO_RESTORE),
+            )
+        },
         "settings-reminder" to {
             SettingsScreen(Settings(reminderEnabled = true, reminderMinutes = 19 * 60 + 30), SettingsActions({}, {}, {}, {}, {}, {}, {}, {}))
         },

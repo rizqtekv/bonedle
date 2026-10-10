@@ -1,6 +1,7 @@
 package app.bonedle.data.db
 
 import androidx.room.AutoMigration
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -28,6 +29,8 @@ data class SavedGameEntity(
     val source: String,
     val startedAt: Long,
     val updatedAt: Long,
+    /** Hints earned on this board by watching a rewarded ad, on top of the free ones. */
+    @ColumnInfo(defaultValue = "0") val extraHints: Int = 0,
 )
 
 /** A finished board: the source for stats, streaks, the archive and the share card. */
@@ -109,6 +112,10 @@ interface GameDao {
     @Query("SELECT * FROM results")
     suspend fun allResults(): List<GameResultEntity>
 
+    /** Unlimited boards solved after [since] (epoch ms), for the interstitial pacing. */
+    @Query("SELECT COUNT(*) FROM results WHERE mode = 'unlimited' AND completedAt > :since")
+    suspend fun unlimitedSolvedSince(since: Long): Int
+
     @Upsert
     suspend fun upsertChallenge(challenge: ChallengeEntity)
 
@@ -118,9 +125,9 @@ interface GameDao {
 
 @Database(
     entities = [SavedGameEntity::class, GameResultEntity::class, StreakFreezeEntity::class, ChallengeEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4)],
 )
 abstract class BonedleDatabase : RoomDatabase() {
     abstract fun games(): GameDao

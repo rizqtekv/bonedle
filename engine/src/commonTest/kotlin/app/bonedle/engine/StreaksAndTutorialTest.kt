@@ -45,6 +45,24 @@ class StreaksAndTutorialTest {
     }
 
     @Test
+    fun aRewardedSaverRescuesYesterdayOncePerWeek() {
+        val played = setOf(d, d + 1)
+        // Free freeze already spent this week: yesterday (d + 2) can still be saved by an ad.
+        assertEquals(d + 2, Streaks.rescueDay(played, emptySet(), emptyList(), today = d + 3))
+        // One rewarded freeze already in that week: no more.
+        assertNull(Streaks.rescueDay(played, emptySet(), listOf(Streaks.weekStart(d + 2)), today = d + 3))
+        // A rewarded freeze in another week does not count.
+        assertEquals(d + 2, Streaks.rescueDay(played, emptySet(), listOf(Streaks.weekStart(d + 2) - 7), today = d + 3))
+        // Two days missed: nothing left to save.
+        assertNull(Streaks.rescueDay(played, emptySet(), emptyList(), today = d + 4))
+        // Yesterday played or already frozen: nothing to save.
+        assertNull(Streaks.rescueDay(played + (d + 2), emptySet(), emptyList(), today = d + 3))
+        assertNull(Streaks.rescueDay(played, setOf(d + 2), emptyList(), today = d + 3))
+        // Saving it brings the streak back.
+        assertEquals(2, Streaks.current(played, setOf(d + 2), today = d + 3))
+    }
+
+    @Test
     fun weeksStartOnMonday() {
         assertEquals(d, Streaks.weekStart(d))
         assertEquals(d, Streaks.weekStart(d + 6))

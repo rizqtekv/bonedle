@@ -55,6 +55,9 @@ sealed interface PlayIntent {
 
     data object DismissHint : PlayIntent
 
+    /** The player watched the rewarded ad: one more hint on this board, shown at once. */
+    data object GrantExtraHint : PlayIntent
+
     data object RequestRestart : PlayIntent
 
     data object ConfirmRestart : PlayIntent
@@ -106,6 +109,10 @@ data class PlayUiState(
     val sound: Boolean = true,
     val strict: Boolean = false,
     val hintsUsed: Int = 0,
+    /** Hints earned with rewarded ads on this board. */
+    val extraHints: Int = 0,
+    /** Bonedle Plus: unlimited hints. */
+    val plus: Boolean = false,
     val hint: HintUi? = null,
     /** The player asked for a hint with none left. */
     val outOfHints: Boolean = false,
@@ -122,7 +129,10 @@ data class PlayUiState(
     /** True once the board is solved, whether recorded or a tutorial step. */
     val solved: Boolean get() = completion != null || tutorialDone
 
-    val freeHintsLeft: Int get() = (FREE_HINTS - hintsUsed).coerceAtLeast(0)
+    val freeHintsLeft: Int get() = (FREE_HINTS + extraHints - hintsUsed).coerceAtLeast(0)
+
+    /** A hint can be asked for now (Plus never runs out). */
+    val hintAvailable: Boolean get() = plus || freeHintsLeft > 0
 
     val canUndo: Boolean get() = game?.canUndo == true && !solved
 

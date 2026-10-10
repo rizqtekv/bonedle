@@ -71,7 +71,19 @@
             android:authorities="${applicationId}.firebaseinitprovider"
             tools:node="remove" />
 
-        <!-- Analytics only: no advertising ID, and no ad storage until consent (Phase 6, UMP). -->
+        <!-- AdMob (spec 9). Ads start only after UMP consent where it is required (AdsController). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+        <!-- Initialise the ads SDK off the main thread, so it never slows the first board. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+            android:value="true" />
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
+            android:value="true" />
+
+        <!-- Analytics collects no advertising ID and no ad storage signals. -->
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />

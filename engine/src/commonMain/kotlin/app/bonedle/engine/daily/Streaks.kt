@@ -54,6 +54,24 @@ object Streaks {
         return missed
     }
 
+    /** Rewarded "streak saver" freezes allowed per ISO week, on top of the free one. */
+    const val REWARD_FREEZES_PER_WEEK: Int = 1
+
+    /**
+     * The day a rewarded streak saver can rescue on [today], or null: yesterday, when it was
+     * missed and the streak was alive the day before, and yesterday's week has fewer than
+     * [REWARD_FREEZES_PER_WEEK] rewarded freezes ([rewardFreezeWeeks] holds the week start of
+     * each one). Apply the free freeze ([freezeToApply]) first; this is for when it is spent.
+     */
+    fun rescueDay(played: Set<Long>, frozen: Set<Long>, rewardFreezeWeeks: List<Long>, today: Long): Long? {
+        val missed = today - 1
+        if (missed in played || missed in frozen) return null
+        val before = missed - 1
+        if (before !in played && before !in frozen) return null
+        if (rewardFreezeWeeks.count { it == weekStart(missed) } >= REWARD_FREEZES_PER_WEEK) return null
+        return missed
+    }
+
     /** Epoch day of the Monday starting [day]'s ISO week. 1970-01-01 was a Thursday. */
     fun weekStart(day: Long): Long = day - (day + 3).mod(7L)
 }

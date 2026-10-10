@@ -29,6 +29,7 @@ import app.bonedle.feature.archive.ArchiveDestination
 import app.bonedle.feature.home.HomeDestination
 import app.bonedle.feature.play.PlayDestination
 import app.bonedle.feature.play.PlayRoute
+import app.bonedle.feature.plus.PlusDestination
 import app.bonedle.feature.settings.CreditsScreen
 import app.bonedle.feature.settings.SettingsDestination
 import app.bonedle.feature.solved.SolvedDestination
@@ -92,10 +93,19 @@ fun BonedleNavHost(
         }
         composable<StatsRoute> { StatsDestination(onTab = actions::tab) }
         composable<ArchiveRoute> {
-            ArchiveDestination(onOpen = { id, status -> actions.openDaily(id, status, GameSource.ARCHIVE) }, onTab = actions::tab)
+            ArchiveDestination(
+                onOpen = { id, status -> actions.openDaily(id, status, GameSource.ARCHIVE) },
+                onTab = actions::tab,
+                onLocked = { nav.navigate(PlusRoute) },
+            )
         }
         composable<SettingsRoute> {
-            SettingsDestination(onBack = { nav.popBackStack() }, onHowToPlay = actions::howToPlay, onCredits = { nav.navigate(CreditsRoute) })
+            SettingsDestination(
+                onBack = { nav.popBackStack() },
+                onHowToPlay = actions::howToPlay,
+                onCredits = { nav.navigate(CreditsRoute) },
+                onPlus = { nav.navigate(PlusRoute) },
+            )
         }
         composable<CreditsRoute> { CreditsScreen(onBack = { nav.popBackStack() }) }
         composable<PlayRoute> { entry ->
@@ -107,7 +117,14 @@ fun BonedleNavHost(
                 },
                 onTutorialNext = { step -> actions.tutorialNext(step, route.source) },
                 onSkipTutorial = { actions.finishTutorial(route.source, skipped = true) },
+                onPlus = { nav.navigate(PlusRoute) },
             )
+        }
+        composable<PlusRoute>(
+            enterTransition = { slideInVertically(motion.enter(BonedleMotion.SCREEN)) { it } + fadeIn(motion.enter(BonedleMotion.SCREEN)) },
+            exitTransition = { slideOutVertically(motion.exit(BonedleMotion.SCREEN)) { it } + fadeOut(motion.exit(BonedleMotion.SCREEN)) },
+        ) {
+            PlusDestination(onClose = { nav.popBackStack() })
         }
         composable<SolvedRoute>(
             // The Solved screen slides up over the board (spec 4.5).

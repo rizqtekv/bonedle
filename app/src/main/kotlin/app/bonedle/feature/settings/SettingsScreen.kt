@@ -1,8 +1,10 @@
 package app.bonedle.feature.settings
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.text.format.DateFormat
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,15 +23,19 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -37,31 +43,37 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import app.bonedle.BuildConfig
 import app.bonedle.R
+import app.bonedle.ads.ConsentManager
+import app.bonedle.billing.BillingRepository
+import app.bonedle.billing.RestoreResult
 import app.bonedle.data.settings.Settings
 import app.bonedle.data.settings.SettingsRepository
 import app.bonedle.domain.Links
 import app.bonedle.feature.play.GlassSheet
+import app.bonedle.feature.plus.restoreMessage
 import app.bonedle.notifications.ReminderController
 import app.bonedle.notifications.ReminderNotifier
 import app.bonedle.ui.design.BonedleButton
-import app.bonedle.ui.design.ButtonStyle
-import app.bonedle.ui.format.formatTimeOfDay
-import app.bonedle.ui.growth.openNotificationSettings
-import app.bonedle.ui.growth.rememberNotificationPermission
 import app.bonedle.ui.design.BonedleCard
 import app.bonedle.ui.design.BonedleIconButton
 import app.bonedle.ui.design.BonedleIcons
+import app.bonedle.ui.design.ButtonStyle
 import app.bonedle.ui.design.GlassTopBar
 import app.bonedle.ui.design.NavigationRow
 import app.bonedle.ui.design.SectionHeader
 import app.bonedle.ui.design.SegmentedControl
 import app.bonedle.ui.design.SwitchRow
+import app.bonedle.ui.format.formatTimeOfDay
+import app.bonedle.ui.growth.openNotificationSettings
+import app.bonedle.ui.growth.rememberNotificationPermission
 import app.bonedle.ui.theme.BonedleTheme
 import app.bonedle.ui.theme.Spacing
 import app.bonedle.ui.theme.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -70,8 +82,25 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val repo: SettingsRepository,
     private val reminders: ReminderController,
+    private val billing: BillingRepository,
+    private val consent: ConsentManager,
 ) : ViewModel() {
     val settings: StateFlow<Settings> = repo.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Settings())
+
+    private val restoring = MutableStateFlow(false)
+    private val restoreResult = MutableStateFlow<RestoreResult?>(null)
+
+    val extras: StateFlow<SettingsExtras> = combine(billing.state, consent.privacyOptionsRequired, restoring, restoreResult) { plus, privacy, busy, result ->
+        SettingsExtras(plusOwned = plus.owned, plusPrice = plus.offer?.formattedPrice, privacyChoices = privacy, restoring = busy, restoreResult = result)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsExtras())
+
+    fun restorePurchases() = launch {
+        restoring.value = true
+        restoreResult.value = billing.refresh()
+        restoring.value = false
+    }
+
+    fun showPrivacyChoices(activity: Activity) = consent.showPrivacyOptions(activity)
 
     fun setTheme(mode: ThemeMode) = launch { repo.setTheme(mode) }
 
@@ -109,11 +138,28 @@ data class SettingsActions(
     val enableReminder: () -> Unit = {},
     val disableReminder: () -> Unit = {},
     val setReminderTime: (Int) -> Unit = {},
+    val openPlus: () -> Unit = {},
+    val restorePurchases: () -> Unit = {},
+    val privacyChoices: () -> Unit = {},
+)
+
+/** Settings rows that come from billing and consent rather than preferences. */
+@Immutable
+data class SettingsExtras(
+    val plusOwned: Boolean = false,
+    /** Plus's price from Play, once known. */
+    val plusPrice: String? = null,
+    /** The consent form must stay reachable (spec 5.7 "consent preferences"). */
+    val privacyChoices: Boolean = false,
+    val restoring: Boolean = false,
+    val restoreResult: RestoreResult? = null,
 )
 
 @Composable
-fun SettingsDestination(onBack: () -> Unit, onHowToPlay: () -> Unit, onCredits: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsDestination(onBack: () -> Unit, onHowToPlay: () -> Unit, onCredits: () -> Unit, onPlus: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val extras by viewModel.extras.collectAsStateWithLifecycle()
+    val activity = LocalActivity.current
     SettingsScreen(
         settings,
         SettingsActions(
@@ -128,19 +174,20 @@ fun SettingsDestination(onBack: () -> Unit, onHowToPlay: () -> Unit, onCredits: 
             viewModel::enableReminder,
             viewModel::disableReminder,
             viewModel::setReminderTime,
+            openPlus = onPlus,
+            restorePurchases = viewModel::restorePurchases,
+            privacyChoices = { activity?.let(viewModel::showPrivacyChoices) },
         ),
+        extras,
     )
 }
 
-/**
- * Settings (spec 5.7). Purchases and consent preferences arrive with Bonedle Plus and ads
- * (Phase 6).
- */
+/** Settings (spec 5.7). */
 @Composable
-fun SettingsScreen(settings: Settings, actions: SettingsActions) {
+fun SettingsScreen(settings: Settings, actions: SettingsActions, extras: SettingsExtras = SettingsExtras()) {
     var pickingTime by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
-        SettingsContent(settings, actions, onPickTime = { pickingTime = true })
+        SettingsContent(settings, actions, extras, onPickTime = { pickingTime = true })
         ReminderTimeSheet(
             visible = pickingTime,
             minutes = settings.reminderMinutes,
@@ -154,7 +201,7 @@ fun SettingsScreen(settings: Settings, actions: SettingsActions) {
 }
 
 @Composable
-private fun SettingsContent(settings: Settings, actions: SettingsActions, onPickTime: () -> Unit) {
+private fun SettingsContent(settings: Settings, actions: SettingsActions, extras: SettingsExtras, onPickTime: () -> Unit) {
     val colors = BonedleTheme.colors
     val context = LocalContext.current
     Column(
@@ -205,6 +252,24 @@ private fun SettingsContent(settings: Settings, actions: SettingsActions, onPick
             BonedleCard(Modifier.fillMaxWidth()) {
                 SwitchRow(stringResource(R.string.settings_strict), settings.strictMode, actions.setStrict, body = stringResource(R.string.settings_strict_body), icon = BonedleIcons.Shield)
             }
+            SectionHeader(stringResource(R.string.settings_section_plus))
+            BonedleCard(Modifier.fillMaxWidth()) {
+                NavigationRow(
+                    stringResource(R.string.settings_plus),
+                    actions.openPlus,
+                    icon = BonedleIcons.Crown,
+                    trailing = if (extras.plusOwned) stringResource(R.string.settings_plus_owned) else extras.plusPrice,
+                )
+                NavigationRow(stringResource(R.string.settings_restore), actions.restorePurchases, icon = BonedleIcons.Restore)
+                extras.restoreResult?.let { result ->
+                    Text(
+                        restoreMessage(result),
+                        style = BonedleTheme.typography.caption,
+                        color = colors.textSecondary,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
+                }
+            }
             SectionHeader(stringResource(R.string.settings_section_notifications))
             ReminderCard(settings, actions, onPickTime)
             SectionHeader(stringResource(R.string.settings_section_about))
@@ -215,6 +280,9 @@ private fun SettingsContent(settings: Settings, actions: SettingsActions, onPick
                     { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Links.PRIVACY_POLICY))) },
                     icon = BonedleIcons.Shield,
                 )
+                if (extras.privacyChoices) {
+                    NavigationRow(stringResource(R.string.settings_privacy_choices), actions.privacyChoices, icon = BonedleIcons.Eye)
+                }
                 NavigationRow(stringResource(R.string.settings_credits), actions.credits, icon = BonedleIcons.Info)
             }
             Box(Modifier.fillMaxWidth().padding(vertical = Spacing.md)) {

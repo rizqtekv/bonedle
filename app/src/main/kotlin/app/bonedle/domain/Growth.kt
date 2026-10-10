@@ -25,7 +25,7 @@ data class HeadToHead(val mineMs: Long, val mineHints: Int, val theirs: Challeng
 /**
  * When to ask for a Play rating (spec 8.6): right after a board solved without hints, once the
  * player has solved at least [MIN_CLEAN_SOLVES] that way, at most once every [COOLDOWN_DAYS]
- * days, and never after a loss (a head-to-head the player just lost).
+ * days, and never after a loss (a head-to-head the player just lost) or an ad.
  */
 object ReviewPolicy {
     const val MIN_CLEAN_SOLVES = 3
@@ -36,11 +36,13 @@ object ReviewPolicy {
      * @param cleanSolves boards solved without hints so far, this one included.
      * @param hintsThisSolve hints used on the board just solved.
      * @param lastAskedAt when the prompt was last requested, or null if never.
+     * @param afterAd an ad was shown moments ago.
      */
-    fun shouldAsk(cleanSolves: Int, hintsThisSolve: Int, lastAskedAt: Long?, now: Long, lostHeadToHead: Boolean): Boolean =
+    fun shouldAsk(cleanSolves: Int, hintsThisSolve: Int, lastAskedAt: Long?, now: Long, lostHeadToHead: Boolean, afterAd: Boolean = false): Boolean =
         hintsThisSolve == 0 &&
             cleanSolves >= MIN_CLEAN_SOLVES &&
             !lostHeadToHead &&
+            !afterAd &&
             (lastAskedAt == null || now - lastAskedAt >= COOLDOWN_DAYS * DAY_MS)
 }
 

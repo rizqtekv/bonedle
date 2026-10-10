@@ -38,7 +38,13 @@ data class HomeUiState(
     val unlimitedDifficulty: Difficulty = Difficulty.MEDIUM,
     /** An unfinished Unlimited board at [unlimitedDifficulty], resumed by the Play button. */
     val unlimitedInProgress: GameId.Unlimited? = null,
+    /** A missed day the streak saver ad can still rescue, with the streak it would restore. */
+    val rescue: StreakRescue? = null,
 )
+
+/** Yesterday was missed with this week's free freeze spent; an ad can save [streak]. */
+@Immutable
+data class StreakRescue(val day: Long, val streak: Int)
 
 /** Home: today's three dailies, the Unlimited card and the streak, all live from the database. */
 @HiltViewModel
@@ -63,6 +69,7 @@ class HomeViewModel @Inject constructor(
             streak = p.streak(day.epochDay).current,
             unlimitedDifficulty = s.unlimitedDifficulty,
             unlimitedInProgress = unlimited,
+            rescue = p.rescueDay(day.epochDay)?.let { missed -> StreakRescue(missed, p.streakIfFrozen(missed, day.epochDay)) },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
@@ -71,6 +78,13 @@ class HomeViewModel @Inject constructor(
         today.value = clock.today()
         viewModelScope.launch {
             if (progress.reconcileStreak() != null) analytics.log(Events.streakFreezeUsed(Progress.FREEZE_FREE))
+        }
+    }
+
+    /** The player watched the streak saver ad for [day]. */
+    fun saveStreak(day: Long) {
+        viewModelScope.launch {
+            if (progress.saveStreakWithReward(day)) analytics.log(Events.streakFreezeUsed(Progress.FREEZE_REWARD))
         }
     }
 

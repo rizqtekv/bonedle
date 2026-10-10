@@ -113,6 +113,17 @@ object Events {
 
     fun reviewPromptShown() = AnalyticsEvent("review_prompt_shown")
 
+    /** A rewarded ad started; [placement] is `extra_hint` or `streak_saver`. */
+    fun rewardedAdShown(placement: String) = AnalyticsEvent("rewarded_ad_shown", mapOf("placement" to placement))
+
+    fun interstitialShown(placement: String) = AnalyticsEvent("interstitial_shown", mapOf("placement" to placement))
+
+    /** Bonedle Plus bought; the price in micros of [currency], as Play reports it. */
+    fun purchasePlus(priceMicros: Long, currency: String) = AnalyticsEvent(
+        "purchase_plus",
+        mapOf("price_micros" to priceMicros, "currency" to currency),
+    )
+
     private fun board(id: GameId): Map<String, Any> = mapOf(
         "mode" to mode(id),
         "difficulty" to id.difficulty.code,

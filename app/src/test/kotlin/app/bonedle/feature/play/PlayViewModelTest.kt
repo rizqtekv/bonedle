@@ -15,14 +15,15 @@ import app.bonedle.data.game.GameId
 import app.bonedle.data.game.GameRepository
 import app.bonedle.data.game.PuzzleBankSource
 import app.bonedle.data.game.PuzzleRepository
+import app.bonedle.data.settings.EntitlementRepository
 import app.bonedle.data.settings.GrowthPreferences
 import app.bonedle.data.settings.SettingsRepository
 import app.bonedle.engine.daily.CalendarDate
 import app.bonedle.engine.game.Hint
 import app.bonedle.engine.game.MoveResult
-import app.bonedle.engine.rules.RegionStatus
 import app.bonedle.engine.model.Difficulty
 import app.bonedle.engine.model.Direction
+import app.bonedle.engine.rules.RegionStatus
 import app.bonedle.testing.RecordingAnalytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +61,7 @@ class PlayViewModelTest {
     private lateinit var db: BonedleDatabase
     private lateinit var settings: SettingsRepository
     private lateinit var growth: GrowthPreferences
+    private lateinit var entitlements: EntitlementRepository
     private val clock = FakeClock()
     private val analytics = RecordingAnalytics()
 
@@ -77,6 +79,7 @@ class PlayViewModelTest {
         val store = PreferenceDataStoreFactory.create(scope = CoroutineScope(dispatcher + SupervisorJob())) { tmp.newFile("settings.preferences_pb") }
         settings = SettingsRepository(store)
         growth = GrowthPreferences(store)
+        entitlements = EntitlementRepository(store)
     }
 
     @After
@@ -98,6 +101,7 @@ class PlayViewModelTest {
             puzzles = PuzzleRepository(PuzzleBankSource(context), dispatcher, backgroundScope),
             games = GameRepository(db.games(), clock, dispatcher),
             settings = settings,
+            entitlements = entitlements,
             clock = clock,
             compute = dispatcher,
             appScope = backgroundScope,
@@ -341,6 +345,44 @@ class PlayViewModelTest {
         advanceUntilIdle()
         assertTrue(analytics.named("puzzle_start").isEmpty())
         assertEquals(3L, analytics.named("tutorial_step").single().params["step"])
+    }
+
+    @Test
+    fun aRewardedHintGivesOneMoreHintThatSurvivesProcessDeath() = runTest(dispatcher) {
+        val (vm, handle) = viewModel(key = null, difficulty = "easy")
+        repeat(PlayUiState.FREE_HINTS) {
+            vm.onIntent(PlayIntent.Hint)
+            advanceUntilIdle()
+            vm.onIntent(PlayIntent.DismissHint)
+        }
+        vm.onIntent(PlayIntent.Hint)
+        advanceUntilIdle()
+        assertTrue(vm.state.value.outOfHints)
+        vm.onIntent(PlayIntent.GrantExtraHint)
+        advanceUntilIdle()
+        // The earned hint opens straight away.
+        assertNotNull(vm.state.value.hint)
+        assertEquals(1, vm.state.value.extraHints)
+        assertEquals(PlayUiState.FREE_HINTS + 1, vm.state.value.hintsUsed)
+        vm.onPause()
+        advanceUntilIdle()
+        val (restored, _) = viewModel(handle = handle)
+        assertEquals(1, restored.state.value.extraHints)
+        assertEquals(0, restored.state.value.freeHintsLeft)
+    }
+
+    @Test
+    fun plusNeverRunsOutOfHints() = runTest(dispatcher) {
+        entitlements.setPlus(true)
+        val (vm, _) = viewModel()
+        assertTrue(vm.state.value.plus)
+        repeat(PlayUiState.FREE_HINTS + 2) {
+            vm.onIntent(PlayIntent.Hint)
+            advanceUntilIdle()
+            assertFalse(vm.state.value.outOfHints)
+            vm.onIntent(PlayIntent.DismissHint)
+        }
+        assertEquals(PlayUiState.FREE_HINTS + 2, vm.state.value.hintsUsed)
     }
 
     /** Clears [vm] the way leaving the screen does. */

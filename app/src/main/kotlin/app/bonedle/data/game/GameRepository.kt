@@ -23,6 +23,8 @@ data class SavedGame(
     val undoCount: Int,
     val source: GameSource,
     val startedAt: Long,
+    /** Hints earned with rewarded ads on this board. */
+    val extraHints: Int = 0,
 ) {
     val puzzle: Puzzle get() = game.puzzle
 }
@@ -57,6 +59,7 @@ class GameRepository @Inject constructor(
                 undoCount = e.undoCount,
                 source = GameSource.fromCode(e.source),
                 startedAt = e.startedAt,
+                extraHints = e.extraHints,
             )
         }.getOrNull()
         if (restored == null) dao.deleteSave(id.key)
@@ -75,6 +78,7 @@ class GameRepository @Inject constructor(
                 source = save.source.code,
                 startedAt = save.startedAt,
                 updatedAt = clock.nowMillis(),
+                extraHints = save.extraHints,
             ),
         )
     }

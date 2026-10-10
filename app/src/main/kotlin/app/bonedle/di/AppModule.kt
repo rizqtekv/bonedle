@@ -5,8 +5,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import app.bonedle.ads.Ads
+import app.bonedle.ads.AdsController
 import app.bonedle.analytics.Analytics
 import app.bonedle.analytics.FirebaseAnalyticsTracker
+import app.bonedle.billing.GooglePlayBilling
+import app.bonedle.billing.PlayBilling
 import app.bonedle.data.Clock
 import app.bonedle.data.SystemClock
 import app.bonedle.data.db.BonedleDatabase
@@ -79,4 +83,10 @@ abstract class BindingsModule {
 
     @Binds
     abstract fun analytics(impl: FirebaseAnalyticsTracker): Analytics
+
+    @Binds
+    abstract fun ads(impl: AdsController): Ads
+
+    @Binds
+    abstract fun playBilling(impl: GooglePlayBilling): PlayBilling
 }

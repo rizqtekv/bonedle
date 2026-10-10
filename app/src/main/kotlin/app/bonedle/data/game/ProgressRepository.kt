@@ -59,6 +59,21 @@ data class Progress(
 
     val frozenDays: Set<Long> get() = freezes.map { it.epochDay }.toSet()
 
+    /**
+     * The missed day a rewarded streak saver can still rescue on [today] (once this week's free
+     * freeze is spent), or null.
+     */
+    fun rescueDay(today: Long): Long? {
+        val freeWeeks = freezes.filter { it.source == FREEZE_FREE }.map { it.weekStart }.toSet()
+        // A free freeze still due covers the day by itself.
+        if (Streaks.freezeToApply(playedDays, frozenDays, freeWeeks, today) != null) return null
+        val rewardWeeks = freezes.filter { it.source == FREEZE_REWARD }.map { it.weekStart }
+        return Streaks.rescueDay(playedDays, frozenDays, rewardWeeks, today)
+    }
+
+    /** The streak on [today] if [day] were frozen. */
+    fun streakIfFrozen(day: Long, today: Long): Int = Streaks.current(playedDays, frozenDays + day, today)
+
     fun streak(today: Long): StreakInfo = StreakInfo(
         current = Streaks.current(playedDays, frozenDays, today),
         best = Streaks.best(playedDays, frozenDays),
@@ -91,5 +106,16 @@ class ProgressRepository @Inject constructor(
         val day = Streaks.freezeToApply(progress.playedDays, progress.frozenDays, freeWeeks, today) ?: return null
         dao.insertFreeze(StreakFreezeEntity(day, Streaks.weekStart(day), Progress.FREEZE_FREE, clock.nowMillis()))
         return day
+    }
+
+    /**
+     * Saves the streak over [day] after the player watched the streak-saver ad. Returns false if
+     * the day can no longer be rescued (for example the date changed meanwhile).
+     */
+    suspend fun saveStreakWithReward(day: Long): Boolean {
+        val progress = Progress(dao.allResults(), emptyList(), dao.allFreezes())
+        if (progress.rescueDay(clock.today().epochDay) != day) return false
+        dao.insertFreeze(StreakFreezeEntity(day, Streaks.weekStart(day), Progress.FREEZE_REWARD, clock.nowMillis()))
+        return true
     }
 }

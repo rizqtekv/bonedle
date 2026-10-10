@@ -52,8 +52,8 @@ import app.bonedle.ui.design.RuleChip
 import app.bonedle.ui.design.drawDomino
 import app.bonedle.ui.design.drawRegionTexture
 import app.bonedle.ui.design.regionColorName
-import app.bonedle.ui.design.toChipState
 import app.bonedle.ui.design.ruleSpoken
+import app.bonedle.ui.design.toChipState
 import app.bonedle.ui.theme.BonedleColors
 import app.bonedle.ui.theme.BonedleTheme
 import app.bonedle.ui.theme.Radii

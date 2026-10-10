@@ -5,6 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import app.bonedle.ads.AdHistory
+import app.bonedle.ads.AdPolicy
 import app.bonedle.analytics.Analytics
 import app.bonedle.analytics.Events
 import app.bonedle.data.Clock
@@ -73,6 +75,7 @@ class SolvedViewModel @Inject constructor(
     private val growth: GrowthPreferences,
     private val reminders: ReminderController,
     private val analytics: Analytics,
+    private val adHistory: AdHistory,
     private val clock: Clock,
 ) : ViewModel() {
     private val route: SolvedRoute = savedState.toRoute()
@@ -111,7 +114,9 @@ class SolvedViewModel @Inject constructor(
             return
         }
         val lost = challenge?.let { HeadToHead(result.timeMs, result.hintsUsed, it).outcome == Outcome.LOST } ?: false
-        if (ReviewPolicy.shouldAsk(cleanSolves(p), result.hintsUsed, growth.reviewAskedAt(), clock.nowMillis(), lost)) {
+        val now = clock.nowMillis()
+        val afterAd = AdPolicy.adShownRecently(adHistory.lastShownAt.value, now)
+        if (ReviewPolicy.shouldAsk(cleanSolves(p), result.hintsUsed, growth.reviewAskedAt(), now, lost, afterAd)) {
             _state.update { it.copy(askReview = true) }
         }
     }

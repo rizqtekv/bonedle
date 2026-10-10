@@ -12,6 +12,7 @@ import app.bonedle.data.game.GameRepository
 import app.bonedle.data.game.GameSource
 import app.bonedle.data.game.PuzzleRepository
 import app.bonedle.data.game.SavedGame
+import app.bonedle.data.settings.EntitlementRepository
 import app.bonedle.data.settings.GrowthPreferences
 import app.bonedle.data.settings.SettingsRepository
 import app.bonedle.di.ApplicationScope
@@ -53,6 +54,7 @@ class PlayViewModel @Inject constructor(
     private val puzzles: PuzzleRepository,
     private val games: GameRepository,
     settings: SettingsRepository,
+    entitlements: EntitlementRepository,
     private val clock: Clock,
     @DefaultDispatcher private val compute: CoroutineDispatcher,
     @ApplicationScope private val appScope: CoroutineScope,
@@ -86,6 +88,7 @@ class PlayViewModel @Inject constructor(
         viewModelScope.launch {
             settings.settings.collect { s -> _state.update { it.copy(hideTimer = s.hideTimer, strict = s.strictMode, haptics = s.haptics, sound = s.sound) } }
         }
+        viewModelScope.launch { entitlements.plus.collect { plus -> _state.update { it.copy(plus = plus) } } }
         load()
     }
 
@@ -111,6 +114,11 @@ class PlayViewModel @Inject constructor(
             PlayIntent.Hint -> hint(game)
             PlayIntent.RevealHint -> s.hint?.let { reveal(game, it.hint) }
             PlayIntent.DismissHint -> _state.update { it.copy(hint = null, outOfHints = false) }
+            PlayIntent.GrantExtraHint -> {
+                _state.update { it.copy(extraHints = it.extraHints + 1, outOfHints = false) }
+                scheduleSave()
+                hint(game)
+            }
             PlayIntent.RequestRestart -> _state.update { it.copy(confirmRestart = true) }
             PlayIntent.CancelRestart -> _state.update { it.copy(confirmRestart = false) }
             PlayIntent.ConfirmRestart -> {
@@ -194,7 +202,7 @@ class PlayViewModel @Inject constructor(
             baseElapsed = save.elapsedMs
             undoCount = save.undoCount
             startedAt = save.startedAt
-            _state.update { it.copy(hintsUsed = save.hintsUsed) }
+            _state.update { it.copy(hintsUsed = save.hintsUsed, extraHints = save.extraHints) }
             return Loaded(id, save.game, null)
         }
         val puzzle = puzzles.puzzle(id)
@@ -337,7 +345,7 @@ class PlayViewModel @Inject constructor(
             }
             return
         }
-        if (s.freeHintsLeft == 0) {
+        if (!s.hintAvailable) {
             _state.update { it.copy(outOfHints = true) }
             return
         }
@@ -400,7 +408,7 @@ class PlayViewModel @Inject constructor(
         val id = s.id ?: return null
         val game = s.game ?: return null
         if (s.solved || id is GameId.Tutorial) return null
-        return SavedGame(id, game, elapsedNow(), s.hintsUsed, undoCount, source, startedAt)
+        return SavedGame(id, game, elapsedNow(), s.hintsUsed, undoCount, source, startedAt, s.extraHints)
     }
 
     private fun scheduleSave() {
@@ -423,7 +431,7 @@ class PlayViewModel @Inject constructor(
         stopClock()
         val s = _state.value
         val id = s.id ?: return
-        val save = SavedGame(id, game, baseElapsed, s.hintsUsed, undoCount, source, startedAt)
+        val save = SavedGame(id, game, baseElapsed, s.hintsUsed, undoCount, source, startedAt, s.extraHints)
         pendingSave?.cancel()
         _effects.trySend(PlayEffect.Solved)
         analytics.log(Events.puzzleComplete(id, source, save.elapsedMs, save.hintsUsed, save.undoCount))

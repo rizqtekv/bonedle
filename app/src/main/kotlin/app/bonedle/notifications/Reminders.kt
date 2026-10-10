@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -22,7 +23,6 @@ import app.bonedle.data.settings.SettingsRepository
 import app.bonedle.di.ApplicationScope
 import app.bonedle.engine.daily.DailySchedule
 import app.bonedle.ui.theme.DarkColors
-import androidx.compose.ui.graphics.toArgb
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

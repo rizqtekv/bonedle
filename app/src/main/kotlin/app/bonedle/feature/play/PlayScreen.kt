@@ -1,6 +1,7 @@
 package app.bonedle.feature.play
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,8 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -45,6 +46,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.bonedle.R
+import app.bonedle.ads.AdPlacement
+import app.bonedle.ads.AdPolicy
+import app.bonedle.ads.LocalAds
 import app.bonedle.data.game.GameId
 import app.bonedle.engine.tutorial.TutorialBoards
 import app.bonedle.ui.design.BarItem
@@ -89,6 +93,7 @@ fun PlayDestination(
     onSolved: (GameId) -> Unit,
     onTutorialNext: (step: Int) -> Unit,
     onSkipTutorial: () -> Unit,
+    onPlus: () -> Unit,
     viewModel: PlayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -104,6 +109,7 @@ fun PlayDestination(
         onSolved = { state.id?.let(onSolved) },
         onTutorialNext = { state.tutorialStep?.let(onTutorialNext) },
         onSkipTutorial = onSkipTutorial,
+        onPlus = onPlus,
     )
 }
 
@@ -122,6 +128,7 @@ fun PlayScreen(
     effects: Flow<PlayEffect> = emptyFlow(),
     onTutorialNext: () -> Unit = {},
     onSkipTutorial: () -> Unit = {},
+    onPlus: (() -> Unit)? = null,
     sounds: SoundEffects? = LocalSoundEffects.current,
     motion: BoardMotion = remember { BoardMotion() },
     drag: DragState = remember { DragState() },
@@ -276,7 +283,7 @@ fun PlayScreen(
                         .padding(horizontal = Spacing.lg, vertical = Spacing.md),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                 ) {
-                    HintPanel(state, onIntent)
+                    HintPanel(state, onIntent, onWatchAd = rememberExtraHintAd(state, onIntent), onPlus = onPlus)
                     PlayToolbar(state, onIntent)
                 }
             }
@@ -337,7 +344,7 @@ private fun PlayToolbar(state: PlayUiState, onIntent: (PlayIntent) -> Unit) {
         add(BarItem(BonedleIcons.Undo, stringResource(R.string.toolbar_undo), enabled = state.canUndo) to PlayIntent.Undo)
         add(BarItem(BonedleIcons.Rotate, stringResource(R.string.toolbar_rotate), enabled = state.selected != null || state.lastPlaced != null) to PlayIntent.Rotate)
         // Tutorial boards teach placement only; hints start on real boards.
-        if (state.tutorialStep == null) add(BarItem(BonedleIcons.Hint, stringResource(R.string.toolbar_hint), badge = state.freeHintsLeft.toString()) to PlayIntent.Hint)
+        if (state.tutorialStep == null) add(BarItem(BonedleIcons.Hint, stringResource(R.string.toolbar_hint), badge = if (state.plus) stringResource(R.string.hints_unlimited_badge) else state.freeHintsLeft.toString()) to PlayIntent.Hint)
         add(BarItem(BonedleIcons.Restart, stringResource(R.string.toolbar_restart), enabled = state.game?.placements?.isNotEmpty() == true) to PlayIntent.RequestRestart)
     }
     GlassToolbar(
@@ -406,3 +413,18 @@ private fun LessonBanner(step: Int) {
             .semantics { liveRegion = LiveRegionMode.Polite },
     )
 }
+
+/**
+ * The rewarded "one more hint" action, or null when it is not offered: Unlimited boards only
+ * (never a daily), never with Plus, and only when an ad is loaded and allowed (spec 9).
+ */
+@Composable
+private fun rememberExtraHintAd(state: PlayUiState, onIntent: (PlayIntent) -> Unit): (() -> Unit)? {
+    val ads = LocalAds.current
+    val activity = LocalActivity.current
+    val ready by ads.readyRewarded.collectAsStateWithLifecycle()
+    val offered = AdPolicy.extraHintOffered(AdPlacement.EXTRA_HINT in ready, state.plus, state.id is GameId.Unlimited)
+    if (!offered || activity == null) return null
+    return { ads.showRewarded(activity, AdPlacement.EXTRA_HINT, onReward = { onIntent(PlayIntent.GrantExtraHint) }) }
+}
+

@@ -74,4 +74,23 @@ class MigrationTest {
             close()
         }
     }
+
+    @Test
+    fun v3ToV4AddsEarnedHintsToSaves() {
+        helper.createDatabase(3).apply {
+            execSQL(
+                "INSERT INTO saved_games (gameKey, puzzle, board, elapsedMs, hintsUsed, undoCount, source, startedAt, updatedAt) " +
+                    "VALUES ('u:7:hard', 'p', 'b', 1000, 2, 0, 'home', 1, 2)",
+            )
+            close()
+        }
+        helper.runMigrationsAndValidate(4, emptyList()).apply {
+            prepare("SELECT hintsUsed, extraHints FROM saved_games WHERE gameKey = 'u:7:hard'").use {
+                it.step()
+                assertEquals(2L, it.getLong(0))
+                assertEquals(0L, it.getLong(1))
+            }
+            close()
+        }
+    }
 }

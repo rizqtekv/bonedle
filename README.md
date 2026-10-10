@@ -43,6 +43,11 @@ Set in `gradle.properties` or passed with `-P`:
 | `bonedle.siteUrl` | `https://rizqtekv.github.io/bonedle` | The website: challenge links, App Links and the privacy policy. |
 | `bonedle.firebase.appId`, `.apiKey`, `.projectId`, `.senderId` | empty | Firebase project keys. Without them analytics is off (debug builds log events to Logcat). |
 | `bonedle.certSha256` | | Signing-key fingerprints for `./gradlew :app:writeAssetLinks`. |
+| `bonedle.admob.appId`, `.rewardedHint`, `.rewardedFreeze`, `.interstitial` | empty | AdMob App ID and ad units ("Extra hint", "Streak saver", "Between Unlimited puzzles"). Debug builds always use Google's test ads; a release build missing any of them makes no ad requests. |
+| `bonedle.admob.publisherId` | | `pub-…`, for `./gradlew :app:writeAppAdsTxt`. |
+| `bonedle.billing.publicKey` | empty | Play licensing key (Monetize with Play > Monetization setup); when set, purchase signatures are verified. Bonedle Plus is the one-time product `bonedle_plus`. |
+| `bonedle.signing.storeFile`, `.storePassword`, `.keyAlias`, `.keyPassword` | | Release signing (upload key). Keep these in `~/.gradle/gradle.properties`, never in the repository. |
+| `bonedle.ads.debugNow`, `bonedle.ump.debugEea`, `bonedle.ump.testDevice` | false | Debug builds only: test ads from the first session; show the consent form as if in the EEA. |
 
 ```
 ./gradlew :app:testDebugUnitTest :app:verifyRoborazziDebug   # app tests and screenshot checks

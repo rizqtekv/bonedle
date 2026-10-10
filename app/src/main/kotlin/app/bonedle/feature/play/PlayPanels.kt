@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.bonedle.R
+import app.bonedle.data.game.GameId
 import app.bonedle.engine.game.Hint
 import app.bonedle.engine.grader.Deduction
 import app.bonedle.engine.model.Puzzle
@@ -102,9 +103,18 @@ fun deductionText(d: Deduction, puzzle: Puzzle): String {
     return "$main $then"
 }
 
-/** A glass card floating above the toolbar with the current hint. */
+/**
+ * A glass card floating above the toolbar with the current hint. Out of free hints it offers
+ * [onWatchAd] (a rewarded ad for one more, Unlimited boards only) and [onPlus], when given.
+ */
 @Composable
-fun HintPanel(state: PlayUiState, onIntent: (PlayIntent) -> Unit, modifier: Modifier = Modifier) {
+fun HintPanel(
+    state: PlayUiState,
+    onIntent: (PlayIntent) -> Unit,
+    modifier: Modifier = Modifier,
+    onWatchAd: (() -> Unit)? = null,
+    onPlus: (() -> Unit)? = null,
+) {
     val game = state.game ?: return
     val hint = state.hint
     val visible = hint != null || state.outOfHints
@@ -123,7 +133,8 @@ fun HintPanel(state: PlayUiState, onIntent: (PlayIntent) -> Unit, modifier: Modi
                     BonedleIconButton(BonedleIcons.Close, stringResource(R.string.action_close), onClick = { onIntent(PlayIntent.DismissHint) })
                 }
                 val text = when {
-                    state.outOfHints && hint == null -> stringResource(R.string.hint_none_left)
+                    state.outOfHints && hint == null ->
+                        stringResource(if (state.id is GameId.Daily) R.string.hint_none_left_daily else R.string.hint_none_left)
                     hint?.hint is Hint.WrongDomino -> stringResource(R.string.hint_wrong)
                     hint?.hint is Hint.Step -> {
                         val d = hint.hint.deduction
@@ -141,6 +152,16 @@ fun HintPanel(state: PlayUiState, onIntent: (PlayIntent) -> Unit, modifier: Modi
                     color = BonedleTheme.colors.textPrimary,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
+                if (state.outOfHints && hint == null && (onWatchAd != null || onPlus != null)) {
+                    AdaptiveRow { item ->
+                        if (onPlus != null) {
+                            BonedleButton(stringResource(R.string.hint_get_plus), onClick = onPlus, style = ButtonStyle.Secondary, icon = BonedleIcons.Crown, modifier = item)
+                        }
+                        if (onWatchAd != null) {
+                            BonedleButton(stringResource(R.string.hint_watch_ad), onClick = onWatchAd, icon = BonedleIcons.Video, modifier = item)
+                        }
+                    }
+                }
                 if (hint != null) {
                     AdaptiveRow { item ->
                         val step = hint.hint as? Hint.Step

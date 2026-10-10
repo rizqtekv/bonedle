@@ -75,6 +75,10 @@
     <string name="hint_wrong">This domino isn’t in the right place.</string>
     <string name="hint_take_back">Take it back</string>
     <string name="hint_none_left">No free hints left for this puzzle.</string>
+    <string name="hint_none_left_daily">That was this board’s two free hints. Daily boards never show ads; Bonedle Plus gives unlimited hints.</string>
+    <string name="hint_watch_ad">Watch an ad: +1 hint</string>
+    <string name="hint_get_plus">Unlimited with Plus</string>
+    <string name="hints_unlimited_badge">∞</string>
     <string name="hint_fallback">Here’s a domino that belongs on the board.</string>
     <string name="deduction_single_cell">Only one option fits in these cells.</string>
     <string name="deduction_single_pair">These two cells can only form one domino together.</string>
@@ -193,6 +197,35 @@
         <item quantity="other">Keep your %1$d-day streak going: three new boards are waiting.</item>
     </plurals>
 
+    <!-- Streak saver, a rewarded ad (spec 8.4) -->
+    <plurals name="streak_saver_title">
+        <item quantity="one">Save your %1$d-day streak</item>
+        <item quantity="other">Save your %1$d-day streak</item>
+    </plurals>
+    <string name="streak_saver_body">You missed yesterday and this week’s free freeze is used. Watch a short ad to keep your streak going.</string>
+    <string name="streak_saver_action">Watch ad to save it</string>
+
+    <!-- Bonedle Plus (spec 5.8) -->
+    <string name="plus_title">Bonedle Plus</string>
+    <string name="plus_subtitle">One purchase, yours for good.</string>
+    <string name="plus_owned">You have Bonedle Plus. Thank you for supporting Bonedle!</string>
+    <string name="plus_benefit_ads">No ads</string>
+    <string name="plus_benefit_ads_body">No ads between Unlimited boards. Daily boards never have ads anyway.</string>
+    <string name="plus_benefit_archive">The full archive</string>
+    <string name="plus_benefit_archive_body">Every daily board since #1, not just the last 30 days.</string>
+    <string name="plus_benefit_hints">Unlimited hints</string>
+    <string name="plus_benefit_hints_body">Ask for help on any board as often as you like.</string>
+    <string name="plus_buy">Get Plus · %1$s</string>
+    <string name="plus_buy_unavailable">Not available right now</string>
+    <string name="plus_fine_print">One-time purchase through Google Play, not a subscription. It returns automatically when you reinstall, on any phone signed in to the same Google account.</string>
+    <string name="plus_pending">Your purchase is pending. Plus unlocks as soon as Google Play confirms the payment.</string>
+    <string name="plus_failed">The purchase didn’t go through. Nothing was charged; please try again.</string>
+    <string name="plus_unavailable">Google Play can’t be reached. Check your connection and that you’re signed in to Google Play.</string>
+    <string name="plus_restore">Restore purchase</string>
+    <string name="plus_restore_done">Bonedle Plus is restored.</string>
+    <string name="plus_restore_none">No Bonedle Plus purchase found for this Google account.</string>
+    <string name="plus_restore_unavailable">Couldn’t reach Google Play. Try again in a moment.</string>
+
     <!-- Stats -->
     <string name="stats_title">Stats</string>
     <string name="stats_played">Played</string>
@@ -217,6 +250,7 @@
     <string name="archive_entry_title">#%1$d · %2$s</string>
     <string name="archive_locked">Bonedle Plus</string>
     <string name="archive_locked_description">Older boards come with Bonedle Plus</string>
+    <string name="archive_open_plus">see Bonedle Plus</string>
     <string name="archive_chip_description">%1$s, %2$s</string>
     <string name="status_new">not started</string>
     <string name="status_in_progress">in progress</string>
@@ -237,6 +271,11 @@
     <string name="settings_section_play">Gameplay</string>
     <string name="settings_strict">Strict mode</string>
     <string name="settings_strict_body">Refuse dominoes that break a rule instead of flagging them.</string>
+    <string name="settings_section_plus">Bonedle Plus</string>
+    <string name="settings_plus">Remove ads with Plus</string>
+    <string name="settings_plus_owned">Owned</string>
+    <string name="settings_restore">Restore purchases</string>
+    <string name="settings_privacy_choices">Privacy choices</string>
     <string name="settings_section_notifications">Notifications</string>
     <string name="settings_reminder">Daily reminder</string>
     <string name="settings_reminder_body">One notification a day, only if today’s boards are unsolved.</string>

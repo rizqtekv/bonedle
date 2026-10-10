@@ -1,5 +1,6 @@
 package app.bonedle.feature.home
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,18 +23,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.bonedle.R
+import app.bonedle.ads.AdPlacement
+import app.bonedle.ads.LocalAds
 import app.bonedle.analytics.LocalAnalytics
 import app.bonedle.analytics.ShareSurface
 import app.bonedle.data.game.BoardStatus
@@ -70,6 +74,8 @@ data class HomeActions(
     val openSettings: () -> Unit,
     val howToPlay: () -> Unit,
     val onTab: (Tab) -> Unit,
+    /** The streak saver ad was watched for this missed day. */
+    val saveStreak: (Long) -> Unit = {},
 )
 
 @Composable
@@ -86,7 +92,7 @@ fun HomeDestination(
         viewModel.onResume()
         onPauseOrDispose { }
     }
-    HomeScreen(state, HomeActions(onOpenDaily, onPlayUnlimited, viewModel::selectUnlimited, onSettings, onHowToPlay, onTab))
+    HomeScreen(state, HomeActions(onOpenDaily, onPlayUnlimited, viewModel::selectUnlimited, onSettings, onHowToPlay, onTab, viewModel::saveStreak))
 }
 
 /** Home (spec 5.2). Stateless, for previews and screenshots. */
@@ -107,6 +113,7 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 Text(formatLongDate(state.today), style = BonedleTheme.typography.heading, color = colors.textPrimary)
                 Text(stringResource(R.string.play_daily_number, state.number), style = BonedleTheme.typography.caption, color = colors.textSecondary)
             }
+            state.rescue?.let { StreakSaverCard(it, actions.saveStreak) }
             TodayCard(state, actions)
             UnlimitedCard(state, actions)
             ChallengeCard(state)
@@ -118,6 +125,37 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
         }
+    }
+}
+
+/**
+ * Yesterday was missed and the free freeze is spent: a rewarded ad can save the streak (spec
+ * 8.4). Shown only while such an ad is ready, so the button always works.
+ */
+@Composable
+private fun StreakSaverCard(rescue: StreakRescue, onSaved: (Long) -> Unit) {
+    val ads = LocalAds.current
+    val activity = LocalActivity.current
+    val ready by ads.readyRewarded.collectAsStateWithLifecycle()
+    if (AdPlacement.STREAK_SAVER !in ready || activity == null || rescue.streak <= 0) return
+    val colors = BonedleTheme.colors
+    BonedleCard(Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(BonedleIcons.Snowflake, contentDescription = null, tint = colors.accentText, modifier = Modifier.size(Sizes.icon))
+            Spacer(Modifier.width(Spacing.sm))
+            Text(
+                pluralStringResource(R.plurals.streak_saver_title, rescue.streak, rescue.streak),
+                style = BonedleTheme.typography.heading,
+                color = colors.textPrimary,
+            )
+        }
+        Text(stringResource(R.string.streak_saver_body), style = BonedleTheme.typography.body, color = colors.textSecondary)
+        BonedleButton(
+            stringResource(R.string.streak_saver_action),
+            onClick = { ads.showRewarded(activity, AdPlacement.STREAK_SAVER, onReward = { onSaved(rescue.day) }) },
+            icon = BonedleIcons.Video,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

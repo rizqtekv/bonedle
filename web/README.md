@@ -42,6 +42,13 @@ git push -f https://github.com/rizqtekv/bonedle.git gh-pages
    branch). Its `.nojekyll` keeps `.well-known` from being dropped, and its `index.html` forwards
    visitors to `/bonedle/`.
 
+## app-ads.txt (AdMob)
+
+AdMob looks for `app-ads.txt` at the root of the developer website named in the Play Store
+listing (`https://rizqtekv.github.io`). `./gradlew :app:writeAppAdsTxt` (with
+`bonedle.admob.publisherId`) writes `web/root-site/app-ads.txt`; publish it in the
+`rizqtekv.github.io` repository next to `.well-known`.
+
 If the site later moves to its own domain, change `bonedle.siteUrl`; at a host's root the asset
 links are published with the site itself.
 

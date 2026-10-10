@@ -14,6 +14,27 @@ val siteUrl = URI(buildProperty("siteUrl").trimEnd('/')).also {
 val linkHost: String = siteUrl.host
 val linkPath: String = siteUrl.path.orEmpty().trimEnd('/')
 
+// AdMob (spec 9): App ID and the three ad units, from `bonedle.admob.*`. Debug builds always serve
+// Google's test ads, never your own; a release build without every ID makes no ad requests at
+// all, so test ads can never ship.
+val admobAppId = buildProperty("admob.appId")
+val admobUnits = mapOf(
+    "AD_UNIT_REWARDED_HINT" to buildProperty("admob.rewardedHint"),
+    "AD_UNIT_REWARDED_FREEZE" to buildProperty("admob.rewardedFreeze"),
+    "AD_UNIT_INTERSTITIAL" to buildProperty("admob.interstitial"),
+)
+val admobConfigured = admobAppId.isNotEmpty() && admobUnits.values.all { it.isNotEmpty() }
+val testAdUnits = mapOf(
+    "AD_UNIT_REWARDED_HINT" to "ca-app-pub-3940256099942544/5224354917",
+    "AD_UNIT_REWARDED_FREEZE" to "ca-app-pub-3940256099942544/5224354917",
+    "AD_UNIT_INTERSTITIAL" to "ca-app-pub-3940256099942544/1033173712",
+)
+val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
+
+// Release signing, from `bonedle.signing.*` (keep them in ~/.gradle/gradle.properties, never in
+// the repository). Without them release builds are unsigned.
+val signingStore = buildProperty("signing.storeFile")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -46,6 +67,41 @@ android {
         buildConfigField("String", "FIREBASE_API_KEY", "\"${buildProperty("firebase.apiKey")}\"")
         buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${buildProperty("firebase.projectId")}\"")
         buildConfigField("String", "FIREBASE_SENDER_ID", "\"${buildProperty("firebase.senderId")}\"")
+        // The SDK reads the App ID at startup even when ads are off, so it always has one.
+        manifestPlaceholders["admobAppId"] = admobAppId.ifEmpty { testAdMobAppId }
+        // Play Console > Monetize with Play > Monetization setup > Licensing: verifies purchase
+        // signatures on the device. Optional; without it purchases are trusted as Play reports them.
+        buildConfigField("String", "BILLING_PUBLIC_KEY", "\"${buildProperty("billing.publicKey")}\"")
+        // Debug only: show the consent form as if in the EEA (`-Pbonedle.ump.debugEea=true`); a
+        // real phone also needs its hashed ID from Logcat (`-Pbonedle.ump.testDevice=`).
+        buildConfigField("boolean", "UMP_DEBUG_EEA", buildProperty("ump.debugEea", "false"))
+        buildConfigField("String", "UMP_TEST_DEVICE", "\"${buildProperty("ump.testDevice")}\"")
+        // Debug only: allow (test) ads in the first session too (`-Pbonedle.ads.debugNow=true`),
+        // to try them without waiting for a second session.
+        buildConfigField("boolean", "ADS_DEBUG_NOW", buildProperty("ads.debugNow", "false"))
+    }
+
+    signingConfigs {
+        if (signingStore.isNotEmpty()) {
+            create("release") {
+                storeFile = file(signingStore)
+                storePassword = buildProperty("signing.storePassword")
+                keyAlias = buildProperty("signing.keyAlias")
+                keyPassword = buildProperty("signing.keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            buildConfigField("boolean", "ADS_ENABLED", "true")
+            testAdUnits.forEach { (name, id) -> buildConfigField("String", name, "\"$id\"") }
+        }
+        getByName("release") {
+            buildConfigField("boolean", "ADS_ENABLED", admobConfigured.toString())
+            admobUnits.forEach { (name, id) -> buildConfigField("String", name, "\"$id\"") }
+            if (signingStore.isNotEmpty()) signingConfig = signingConfigs.getByName("release")
+        }
     }
 
     compileOptions {
@@ -133,6 +189,23 @@ tasks.register("writeAssetLinks") {
     }
 }
 
+// app-ads.txt for AdMob: authorises Google to sell this app's ad space. It must sit at the root
+// of the developer website listed in the Play Store (web/root-site, i.e. rizqtekv.github.io).
+//   ./gradlew :app:writeAppAdsTxt   (reads bonedle.admob.publisherId, e.g. pub-1234567890123456)
+tasks.register("writeAppAdsTxt") {
+    description = "Writes web/root-site/app-ads.txt for the AdMob publisher ID."
+    group = "distribution"
+    val publisherId = buildProperty("admob.publisherId")
+    val target = rootProject.layout.projectDirectory.file("web/root-site/app-ads.txt")
+    outputs.file(target)
+    doLast {
+        require(Regex("^pub-[0-9]{16}$").matches(publisherId)) { "set bonedle.admob.publisherId=pub-<16 digits>" }
+        val file = target.asFile
+        file.writeText("google.com, $publisherId, DIRECT, f08c47fec0942fa0\n")
+        println("Wrote ${file.path}")
+    }
+}
+
 roborazzi {
     outputDir.set(layout.projectDirectory.dir("src/test/screenshots"))
 }
@@ -158,6 +231,10 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.play.review)
     implementation(libs.installreferrer)
+    implementation(libs.play.services.ads)
+    implementation(libs.ump)
+    implementation(libs.billing.ktx)
+    implementation(libs.androidx.lifecycle.process)
 
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)

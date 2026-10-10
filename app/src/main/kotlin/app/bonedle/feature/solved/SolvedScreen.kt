@@ -1,5 +1,6 @@
 package app.bonedle.feature.solved
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.bonedle.R
+import app.bonedle.ads.LocalAds
 import app.bonedle.analytics.LocalAnalytics
 import app.bonedle.analytics.ShareSurface
 import app.bonedle.data.game.GameId
@@ -246,7 +248,18 @@ fun SolvedScreen(state: SolvedUiState, actions: SolvedActions) {
                 }
             }
             if (id is GameId.Unlimited) {
-                BonedleButton(stringResource(R.string.solved_next), onClick = { actions.onNext(id.difficulty) }, style = ButtonStyle.Secondary, icon = BonedleIcons.Play, modifier = Modifier.fillMaxWidth())
+                val ads = LocalAds.current
+                val activity = LocalActivity.current
+                BonedleButton(
+                    stringResource(R.string.solved_next),
+                    onClick = {
+                        // Between Unlimited boards is the one place an interstitial may appear (spec 9).
+                        if (activity != null) ads.continueAfterUnlimited(activity) { actions.onNext(id.difficulty) } else actions.onNext(id.difficulty)
+                    },
+                    style = ButtonStyle.Secondary,
+                    icon = BonedleIcons.Play,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
             BonedleButton(
                 stringResource(R.string.solved_home),
